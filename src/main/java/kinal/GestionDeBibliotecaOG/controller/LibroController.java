@@ -3,7 +3,6 @@ package kinal.GestionDeBibliotecaOG.controller;
 import kinal.GestionDeBibliotecaOG.dto.LibroDTO;
 import kinal.GestionDeBibliotecaOG.service.LibroService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -13,10 +12,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/libros")
-@RequiredArgsConstructor
 public class LibroController {
 
     private final LibroService libroService;
+
+    // Constructor explícito para inyección de dependencias
+    public LibroController(LibroService libroService) {
+        this.libroService = libroService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<LibroDTO>> listarLibros(

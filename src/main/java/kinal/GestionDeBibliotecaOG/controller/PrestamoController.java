@@ -1,10 +1,9 @@
 package kinal.GestionDeBibliotecaOG.controller;
 
+import jakarta.validation.Valid;
 import kinal.GestionDeBibliotecaOG.dto.PrestamoDTO;
 import kinal.GestionDeBibliotecaOG.dto.PrestamoRequest;
 import kinal.GestionDeBibliotecaOG.service.PrestamoService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +14,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/prestamos")
-@RequiredArgsConstructor
 public class PrestamoController {
 
     private final PrestamoService prestamoService;
+
+    // Constructor explícito para resolver el error de inicialización
+    public PrestamoController(PrestamoService prestamoService) {
+        this.prestamoService = prestamoService;
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'BIBLIOTECARIO')")

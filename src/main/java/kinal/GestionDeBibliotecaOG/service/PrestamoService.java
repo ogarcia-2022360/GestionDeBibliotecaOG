@@ -7,7 +7,6 @@ import kinal.GestionDeBibliotecaOG.exception.ApiException;
 import kinal.GestionDeBibliotecaOG.repository.LibroRepository;
 import kinal.GestionDeBibliotecaOG.repository.PrestamoRepository;
 import kinal.GestionDeBibliotecaOG.repository.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,12 +15,19 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class PrestamoService {
 
     private final PrestamoRepository prestamoRepository;
     private final UsuarioRepository usuarioRepository;
     private final LibroRepository libroRepository;
+
+    public PrestamoService(PrestamoRepository prestamoRepository,
+                           UsuarioRepository usuarioRepository,
+                           LibroRepository libroRepository) {
+        this.prestamoRepository = prestamoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.libroRepository = libroRepository;
+    }
 
     @Transactional
     public PrestamoDTO registrarPrestamo(PrestamoRequest request) {
@@ -31,7 +37,7 @@ public class PrestamoService {
         Libro libro = libroRepository.findById(request.getLibroId())
                 .orElseThrow(() -> new ApiException("Libro no encontrado", HttpStatus.NOT_FOUND));
 
-        // Regla 1: Validar si el usuario tiene préstamos atrasados al intentar solicitar uno nuevo
+        // Regla 1: Validar si el usuario tiene préstamos atrasados
         List<Prestamo> prestamosActivos = prestamoRepository.findByUsuarioAndEstado(usuario, EstadoPrestamo.ACTIVO);
         boolean tieneAtraso = prestamosActivos.stream()
                 .anyMatch(p -> LocalDate.now().isAfter(p.getFechaDevolucionEsperada()));
@@ -60,15 +66,14 @@ public class PrestamoService {
         libro.setStockDisponible(libro.getStockDisponible() - 1);
         libroRepository.save(libro);
 
-        // Crear préstamo (Plazo fijo de 14 días)
+        // Crear préstamo usando constructor / setters de la entidad Prestamo
         LocalDate hoy = LocalDate.now();
-        Prestamo prestamo = Prestamo.builder()
-                .usuario(usuario)
-                .libro(libro)
-                .fechaPrestamo(hoy)
-                .fechaDevolucionEsperada(hoy.plusDays(14))
-                .estado(EstadoPrestamo.ACTIVO)
-                .build();
+        Prestamo prestamo = new Prestamo();
+        prestamo.setUsuario(usuario);
+        prestamo.setLibro(libro);
+        prestamo.setFechaPrestamo(hoy);
+        prestamo.setFechaDevolucionEsperada(hoy.plusDays(14));
+        prestamo.setEstado(EstadoPrestamo.ACTIVO);
 
         return mapToDTO(prestamoRepository.save(prestamo));
     }
@@ -121,13 +126,13 @@ public class PrestamoService {
         return PrestamoDTO.builder()
                 .id(prestamo.getId())
                 .usuarioId(prestamo.getUsuario().getId())
-                .nombreUsuario(prestamo.getUsuario().getNombre())
+                .usuarioNombre(prestamo.getUsuario().getNombre())
                 .libroId(prestamo.getLibro().getId())
-                .tituloLibro(prestamo.getLibro().getTitulo())
+                .libroTitulo(prestamo.getLibro().getTitulo())
                 .fechaPrestamo(prestamo.getFechaPrestamo())
                 .fechaDevolucionEsperada(prestamo.getFechaDevolucionEsperada())
                 .fechaDevolucionReal(prestamo.getFechaDevolucionReal())
-                .estado(prestamo.getEstado().name())
+                .estado(prestamo.getEstado())
                 .build();
     }
 }

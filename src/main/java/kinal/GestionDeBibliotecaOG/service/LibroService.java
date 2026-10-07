@@ -4,7 +4,6 @@ import kinal.GestionDeBibliotecaOG.dto.LibroDTO;
 import kinal.GestionDeBibliotecaOG.entity.Libro;
 import kinal.GestionDeBibliotecaOG.exception.ApiException;
 import kinal.GestionDeBibliotecaOG.repository.LibroRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,10 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class LibroService {
 
     private final LibroRepository libroRepository;
+
+    // Constructor explícito en lugar de @RequiredArgsConstructor
+    public LibroService(LibroRepository libroRepository) {
+        this.libroRepository = libroRepository;
+    }
 
     @Transactional(readOnly = true)
     public Page<LibroDTO> obtenerTodos(String titulo, String categoria, Pageable pageable) {
