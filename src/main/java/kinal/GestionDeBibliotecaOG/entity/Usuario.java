@@ -1,118 +1,99 @@
 package kinal.GestionDeBibliotecaOG.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
-@Table(
-        name = "usuarios",
-        indexes = {
-                @Index(name = "idx_usuario_email", columnList = "email"),
-                @Index(name = "idx_usuario_estado", columnList = "estado")
-        }
-)
-public class Usuario {
+@Table(name = "usuarios")
+public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Column(nullable = false, length = 100)
     private String nombre;
 
-    @NotBlank(message = "El email es obligatorio")
-    @Email(message = "Debe proporcionar un email válido")
-    @Column(unique = true, nullable = false, length = 150)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
     @Column(nullable = false)
     private String password;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private EstadoUsuario estado;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private Rol rol;
 
-    @Version
-    private Long version;
+    @Enumerated(EnumType.STRING)
+    private EstadoUsuario estado;
 
-    // Constructores
-    public Usuario() {
-    }
+    public Usuario() {}
 
-    public Usuario(Long id, String nombre, String email, String password, EstadoUsuario estado, Rol rol, Long version) {
+    public Usuario(Long id, String nombre, String email, String password, Rol rol, EstadoUsuario estado) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.password = password;
-        this.estado = estado;
         this.rol = rol;
-        this.version = version;
+        this.estado = estado;
     }
 
-    // Getters y Setters
-    public Long getId() {
-        return id;
+    // --- Métodos obligatorios de UserDetails ---
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()));
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getEmail() {
+    @Override
+    public String getUsername() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
+    @Override
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
     }
 
-    public EstadoUsuario getEstado() {
-        return estado;
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
     }
 
-    public void setEstado(EstadoUsuario estado) {
-        this.estado = estado;
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
 
-    public Rol getRol() {
-        return rol;
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
-    public void setRol(Rol rol) {
-        this.rol = rol;
-    }
+    // --- Getters y Setters tradicionales (Sin Lombok) ---
 
-    public Long getVersion() {
-        return version;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setVersion(Long version) {
-        this.version = version;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public void setPassword(String password) { this.password = password; }
+
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
+
+    public EstadoUsuario getEstado() { return estado; }
+    public void setEstado(EstadoUsuario estado) { this.estado = estado; }
 }
